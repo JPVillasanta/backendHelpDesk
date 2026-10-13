@@ -1,0 +1,4 @@
+<?php
+namespace App\Http\Controllers\Admin;
+use App\Models\{Product,User};use Illuminate\Http\Request;
+class AdminController {public function stats(){return ['users'=>User::count(),'products'=>Product::count(),'admins'=>User::where('role','admin')->count()];}public function users(Request $r){$q=User::select('id','name','email','role','created_at')->withCount('products')->latest();if($r->filled('search'))$q->where(fn($w)=>$w->where('name','like','%'.$r->search.'%')->orWhere('email','like','%'.$r->search.'%'));return $q->paginate(15);}public function products(){return Product::with('user:id,name,email')->latest()->paginate(15);}public function destroyProduct(Product $product){$product->delete();return ['message'=>'Product deleted.'];}public function destroyUser(Request $r,User $user){abort_if($r->user()->is($user)||$user->role==='admin',422,'This account cannot be deleted here.');$user->delete();return ['message'=>'User deleted.'];}}
